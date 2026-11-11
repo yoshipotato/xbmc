@@ -11,6 +11,7 @@
 #include "cores/IPlayerCallback.h"
 #include "threads/Event.h"
 
+#include <atomic>
 #include <memory>
 
 class CApplicationStackHelper;
@@ -36,4 +37,11 @@ public:
   void OnAVStarted(const CFileItem& file) override;
   void RequestVideoSettings(const CFileItem& fileItem) override;
   void StoreVideoSettings(const CFileItem& fileItem, const CVideoSettings& vs) override;
+
+private:
+  //! Sets sharpness from the video resolution for files without saved video settings
+  void ApplyAutoSharpness();
+
+  //! True when the playing file had no saved video settings
+  std::atomic<bool> m_usingDefaultVideoSettings{false};
 };

@@ -1,0 +1,64 @@
+name: Windows x64 build
+
+# Builds the Kodi Windows x64 installer with Kodi's own build scripts
+# (tools/buildsteps/windows) and uploads it as a workflow artifact.
+
+on:
+  push:
+    branches-ignore: [ master, main, Matrix, Leia, Nexus, Omega, Piers ]
+  workflow_dispatch:
+
+jobs:
+  windows-x64:
+    runs-on: windows-2022
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # Dependencies (prebuilt libraries, msys2, and FFmpeg built under msys2) only
+      # change when Kodi's dependency lists or build scripts change, so cache them.
+      - name: Cache build dependencies
+        id: deps
+        uses: actions/cache@v4
+        with:
+          path: project/BuildDependencies
+          key: win-x64-deps-${{ hashFiles('project/BuildDependencies/scripts/**', 'tools/buildsteps/windows/**', 'tools/depends/target/ffmpeg/FFMPEG-VERSION') }}
+
+      - name: Download dependencies
+        if: steps.deps.outputs.cache-hit != 'true'
+        shell: cmd
+        run: call tools\buildsteps\windows\x64\download-dependencies.bat
+
+      - name: Download msys2
+        if: steps.deps.outputs.cache-hit != 'true'
+        shell: cmd
+        run: call tools\buildsteps\windows\x64\download-msys2.bat
+
+      - name: Build FFmpeg and other mingw libraries
+        if: steps.deps.outputs.cache-hit != 'true'
+        shell: cmd
+        run: call tools\buildsteps\windows\x64\make-mingwlibs.bat noprompt sh
+
+      - name: Build Kodi and installer
+        shell: cmd
+        run: call tools\buildsteps\windows\x64\BuildSetup.bat noprompt nobinaryaddons noclean sh
+
+      - name: Find installer
+        id: installer
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path project/Win32BuildSetup -Filter "*.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if (-not $exe) { Write-Error "Installer not found"; exit 1 }
+          Write-Host "Installer: $($exe.FullName) ($([math]::Round($exe.Length / 1MB)) MB)"
+          "path=$($exe.FullName)" >> $env:GITHUB_OUTPUT
+          "name=$($exe.BaseName)" >> $env:GITHUB_OUTPUT
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.installer.outputs.name }}
+          path: ${{ steps.installer.outputs.path }}
+          if-no-files-found: error
+          compression-level: 0

@@ -67,7 +67,8 @@ public:
               int ditherDepth,
               bool toneMapping,
               ETONEMAPMETHOD toneMethod,
-              bool HLGtoPQ);
+              bool HLGtoPQ,
+              bool sharpen = false);
   void Render(CD3DTexture& sourceTexture, CRect sourceRect, const CPoint points[4]
             , CD3DTexture& target, unsigned range = 0, float contrast = 0.5f, float brightness = 0.5f);
   void Render(CD3DTexture& sourceTexture, CRect sourceRect, CRect destRect
@@ -76,6 +77,8 @@ public:
   void SetDisplayMetadata(bool hasDisplayMetadata, AVMasteringDisplayMetadata displayMetadata,
                           bool hasLightMetadata, AVContentLightMetadata lightMetadata);
   void SetToneMapParam(ETONEMAPMETHOD method, float param);
+  //! Video settings sharpness, -1..1. Only applied when created with sharpen = true.
+  void SetSharpness(float sharpness) { m_sharpness = sharpness; }
   std::string GetDebugInfo();
 
   static bool CreateLUTView(int lutSize, uint16_t* lutData, bool isRGB, ID3D11ShaderResourceView** ppLUTView);
@@ -96,6 +99,8 @@ private:
   bool m_useDithering = false;
   bool m_toneMapping = false;
   bool m_useHLGtoPQ = false;
+  bool m_useSharpen = false;
+  float m_sharpness = 0.0f;
 
   bool m_hasDisplayMetadata = false;
   bool m_hasLightMetadata = false;

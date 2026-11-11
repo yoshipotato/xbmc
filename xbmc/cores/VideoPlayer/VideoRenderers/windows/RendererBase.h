@@ -183,6 +183,7 @@ protected:
   bool m_cmsOn = false;
   bool m_lutIsLoading = false;
   bool m_useHLGtoPQ = false;
+  bool m_useSharpen = false;
   ETONEMAPMETHOD m_toneMapMethod = VS_TONEMAPMETHOD_OFF;
 
   int m_iBufferIndex = 0;
