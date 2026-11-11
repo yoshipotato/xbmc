@@ -164,6 +164,13 @@ bool CWinShader::Execute(const std::vector<CD3DTexture*> &targets, unsigned int 
 
 void COutputShader::ApplyEffectParameters(CD3DEffect &effect, unsigned sourceWidth, unsigned sourceHeight)
 {
+  if (m_useSharpen && sourceWidth && sourceHeight)
+  {
+    // Slider 1.0 = strength 1.5. The halo limit caps added detail at ~10/255.
+    float sharpParams[4] = {1.0f / static_cast<float>(sourceWidth),
+                            1.0f / static_cast<float>(sourceHeight), m_sharpness * 1.5f, 0.04f};
+    effect.SetFloatArray("m_sharpParams", sharpParams, 4);
+  }
   if (m_useLut && HasLUT())
   {
     float lut_params[2] = {(m_lutSize - 1) / static_cast<float>(m_lutSize),
@@ -251,6 +258,10 @@ void COutputShader::GetDefines(DefinesMap& map) const
   {
     map["KODI_HLG_TO_PQ"] = "";
   }
+  if (m_useSharpen)
+  {
+    map["KODI_SHARPEN"] = "";
+  }
 }
 
 bool COutputShader::Create(bool useLUT,
@@ -258,9 +269,11 @@ bool COutputShader::Create(bool useLUT,
                            int ditherDepth,
                            bool toneMapping,
                            ETONEMAPMETHOD toneMethod,
-                           bool HLGtoPQ)
+                           bool HLGtoPQ,
+                           bool sharpen)
 {
   m_useLut = useLUT;
+  m_useSharpen = sharpen;
   m_ditherDepth = ditherDepth;
   m_toneMapping = toneMapping;
   m_useHLGtoPQ = HLGtoPQ;
@@ -519,8 +532,12 @@ std::string COutputShader::GetDebugInfo()
   if (m_useDithering)
     dither = StringUtils::Format("ON (depth {})", m_ditherDepth);
 
-  return StringUtils::Format("Tone mapping: {} | HLG to PQ: {} | 3D LUT: {} | Dithering: {}", tone,
-                             hlg, lut, dither);
+  const std::string sharpen =
+      m_useSharpen ? StringUtils::Format("ON ({:.2f})", m_sharpness) : std::string("OFF");
+
+  return StringUtils::Format(
+      "Tone mapping: {} | HLG to PQ: {} | 3D LUT: {} | Dithering: {} | Sharpen: {}", tone, hlg,
+      lut, dither, sharpen);
 }
 
 //==================================================================================

@@ -20,6 +20,8 @@
 #include "utils/log.h"
 #include "windowing/GraphicContext.h"
 
+#include <cmath>
+
 using namespace Microsoft::WRL;
 
 void CRenderBuffer::AppendPicture(const VideoPicture& picture)
@@ -267,6 +269,9 @@ void CRendererBase::Render(CD3DTexture& target, const CRect& sourceRect, const C
 
   RenderImpl(m_IntermediateTarget, source, dest, flags);
 
+  if (m_outputShader)
+    m_outputShader->SetSharpness(m_videoSettings.m_Sharpness);
+
   if (m_toneMapping)
   {
     m_outputShader->SetDisplayMetadata(buf->hasDisplayMetadata, buf->displayMetadata, buf->hasLightMetadata, buf->lightMetadata);
@@ -439,7 +444,7 @@ void CRendererBase::UpdateVideoFilters()
   {
     m_outputShader = std::make_shared<COutputShader>();
     if (!m_outputShader->Create(m_cmsOn, m_useDithering, m_ditherDepth, m_toneMapping,
-                                m_toneMapMethod, m_useHLGtoPQ))
+                                m_toneMapMethod, m_useHLGtoPQ, m_useSharpen))
     {
       CLog::LogF(LOGDEBUG, "unable to create output shader.");
       m_outputShader.reset();
@@ -472,6 +477,15 @@ void CRendererBase::CheckVideoParameters()
 
     m_outputShader.reset();
     OnOutputReset();
+  }
+
+  // Sharpening is compiled into the output shader only while it's in use, so the
+  // shader is rebuilt when the Sharpness slider moves to or away from 0.
+  const bool sharpen = std::abs(m_videoSettings.m_Sharpness) >= 0.01f; // slider steps are 0.02
+  if (sharpen != m_useSharpen)
+  {
+    m_useSharpen = sharpen;
+    m_outputShader.reset();
   }
 
   if (m_cmsOn && !m_lutIsLoading && !m_colorManager->CheckConfiguration(m_cmsToken, buf->primaries))
@@ -781,7 +795,8 @@ bool CRendererBase::Supports(ERENDERFEATURE feature) const
       feature == RENDERFEATURE_STRETCH || feature == RENDERFEATURE_NONLINSTRETCH ||
       feature == RENDERFEATURE_ZOOM || feature == RENDERFEATURE_VERTICAL_SHIFT ||
       feature == RENDERFEATURE_PIXEL_RATIO || feature == RENDERFEATURE_ROTATION ||
-      feature == RENDERFEATURE_POSTPROCESS || feature == RENDERFEATURE_TONEMAP)
+      feature == RENDERFEATURE_POSTPROCESS || feature == RENDERFEATURE_TONEMAP ||
+      feature == RENDERFEATURE_SHARPNESS)
     return true;
 
   return false;

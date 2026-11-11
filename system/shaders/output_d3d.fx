@@ -182,7 +182,7 @@ float4 output(float3 color, float2 uv)
 #if defined(KODI_OUTPUT_T)
 #include "convolution_d3d.fx"
 
-#if (defined(KODI_TONE_MAPPING_ACES) || defined(KODI_TONE_MAPPING_HABLE) || defined(KODI_HLG_TO_PQ))
+#if (defined(KODI_TONE_MAPPING_ACES) || defined(KODI_TONE_MAPPING_HABLE) || defined(KODI_HLG_TO_PQ) || defined(KODI_SHARPEN))
 #define PS_PROFILE ps_4_0_level_9_3
 #else
 #define PS_PROFILE ps_4_0_level_9_1
@@ -190,9 +190,39 @@ float4 output(float3 color, float2 uv)
 
 float3 m_params; // 0 - range (0 - full, 1 - limited), 1 - contrast, 2 - brightness
 
+#if defined(KODI_SHARPEN)
+// x, y - size of one source texel, z - strength (negative softens), w - halo limit
+float4 m_sharpParams;
+
+// Luma unsharp mask with halo control.
+// The blur is a 3x3 Gaussian (1-2-1 kernel) built from four bilinear taps placed
+// half a texel off-centre on the diagonals; each tap averages a 2x2 block.
+// Only luma detail is added back, so colours don't fringe, and the added detail
+// is clamped so hard edges don't get bright/dark halos.
+float4 sharpen(float4 color, float2 uv)
+{
+  static const float3 lumaCoef = float3(0.2126f, 0.7152f, 0.0722f);
+  const float2 o = 0.5f * m_sharpParams.xy;
+
+  float3 blur = g_Texture.Sample(KernelSampler, uv + float2(-o.x, -o.y)).rgb;
+  blur += g_Texture.Sample(KernelSampler, uv + float2( o.x, -o.y)).rgb;
+  blur += g_Texture.Sample(KernelSampler, uv + float2(-o.x,  o.y)).rgb;
+  blur += g_Texture.Sample(KernelSampler, uv + float2( o.x,  o.y)).rgb;
+  blur *= 0.25f;
+
+  float detail = dot(color.rgb - blur, lumaCoef);
+  detail = clamp(detail * m_sharpParams.z, -m_sharpParams.w, m_sharpParams.w);
+  color.rgb = saturate(color.rgb + detail);
+  return color;
+}
+#endif
+
 float4 OUTPUT_PS(VS_OUTPUT In) : SV_TARGET
 {
   float4 color = g_Texture.Sample(KernelSampler, In.TextureUV);
+#if defined(KODI_SHARPEN)
+  color = sharpen(color, In.TextureUV);
+#endif
   [flatten] if (m_params.x)
     color = saturate((64.0 / 1023.0) + color * (940.0 - 64.0) / 1023.0);
 

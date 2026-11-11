@@ -16,6 +16,7 @@
 #include "application/ApplicationComponents.h"
 #include "application/ApplicationPlayer.h"
 #include "application/ApplicationStackHelper.h"
+#include "cores/VideoPlayer/Interface/StreamInfo.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIMessage.h"
 #include "guilib/GUIWindowManager.h"
@@ -260,6 +261,42 @@ void CApplicationPlayerCallback::OnAVStarted(const CFileItem& file)
 
   CGUIMessage msg(GUI_MSG_PLAYBACK_AVSTARTED, 0, 0);
   CServiceBroker::GetGUI()->GetWindowManager().SendThreadMessage(msg);
+
+  if (m_usingDefaultVideoSettings.exchange(false))
+    ApplyAutoSharpness();
+}
+
+void CApplicationPlayerCallback::ApplyAutoSharpness()
+{
+  // Sharpness used for 1080p and lower when "Set as default for all media" has
+  // no positive sharpness. A positive default sharpness is used instead.
+  constexpr float AUTO_SHARPNESS = 0.5f;
+
+  auto& components = CServiceBroker::GetAppComponents();
+  const auto appPlayer = components.GetComponent<CApplicationPlayer>();
+  if (!appPlayer->HasVideo() || !appPlayer->Supports(RENDERFEATURE_SHARPNESS))
+    return;
+
+  VideoStreamInfo info;
+  appPlayer->GetVideoStreamInfo(CURRENT_STREAM, info);
+  if (info.width <= 0 || info.height <= 0)
+    return;
+
+  // 1088 allows for 1080p streams coded with 8 padding lines
+  const bool upTo1080p = info.width <= 1920 && info.height <= 1088;
+  const float defaultSharpness =
+      CMediaSettings::GetInstance().GetDefaultVideoSettings().m_Sharpness;
+  const float sharpness =
+      upTo1080p ? (defaultSharpness > 0.0f ? defaultSharpness : AUTO_SHARPNESS) : 0.0f;
+
+  CVideoSettings vs = appPlayer->GetVideoSettings();
+  if (vs.m_Sharpness == sharpness)
+    return;
+
+  CLog::LogF(LOGINFO, "Auto sharpness {:.2f} for {}x{} video", sharpness, info.width,
+             info.height);
+  vs.m_Sharpness = sharpness;
+  appPlayer->SetVideoSettings(vs);
 }
 
 void CApplicationPlayerCallback::RequestVideoSettings(const CFileItem& fileItem)
@@ -271,8 +308,10 @@ void CApplicationPlayerCallback::RequestVideoSettings(const CFileItem& fileItem)
 
     // Load stored settings if they exist, otherwise use default
     CVideoSettings vs;
-    if (!dbs.GetVideoSettings(fileItem, vs))
+    const bool stored = dbs.GetVideoSettings(fileItem, vs);
+    if (!stored)
       vs = CMediaSettings::GetInstance().GetDefaultVideoSettings();
+    m_usingDefaultVideoSettings = !stored;
 
     auto& components = CServiceBroker::GetAppComponents();
     const auto appPlayer = components.GetComponent<CApplicationPlayer>();
