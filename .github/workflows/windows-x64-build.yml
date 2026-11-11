@@ -45,6 +45,29 @@ jobs:
         shell: cmd
         run: call tools\buildsteps\windows\x64\BuildSetup.bat noprompt nobinaryaddons noclean sh
 
+      - name: Package drop-in files
+        id: dropin
+        shell: pwsh
+        run: |
+          # Only the files this branch changes, for copying over a matching Kodi install
+          $release = Get-ChildItem -Path . -Directory -Filter "kodi-build.*" | Select-Object -First 1
+          $exe = Join-Path $release.FullName "Release/kodi.exe"
+          $fx = Get-ChildItem -Path (Join-Path $release.FullName "Release/system") -Recurse -Filter "output_d3d.fx" | Select-Object -First 1
+          if (-not (Test-Path $exe) -or -not $fx) { Write-Error "kodi.exe or output_d3d.fx not found"; exit 1 }
+          $stage = Join-Path "${{ runner.temp }}" "dropin"
+          New-Item -ItemType Directory -Force -Path (Join-Path $stage "system/shaders") | Out-Null
+          Copy-Item $exe $stage
+          Copy-Item $fx.FullName (Join-Path $stage "system/shaders")
+          Get-ChildItem -Recurse $stage | ForEach-Object { $_.FullName }
+          "path=$stage" >> $env:GITHUB_OUTPUT
+
+      - name: Upload drop-in files
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodi-sharpen-dropin-x64
+          path: ${{ steps.dropin.outputs.path }}
+          if-no-files-found: error
+
       - name: Find installer
         id: installer
         shell: pwsh
