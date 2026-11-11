@@ -5000,12 +5000,20 @@ CVideoSettings CVideoPlayer::GetVideoSettings() const
 
 void CVideoPlayer::SetVideoSettings(CVideoSettings& settings)
 {
+  // Only touch subtitle visibility when the caller changed it. Kodi shows or hides
+  // subtitles itself when streams are opened (language preference, forced flags)
+  // without updating m_SubtitleOn, so re-applying the stored flag here would turn
+  // subtitles back on whenever any other video or audio setting is changed.
+  const bool subtitleOnChanged =
+      m_processInfo->GetVideoSettings().m_SubtitleOn != settings.m_SubtitleOn;
+
   m_processInfo->SetVideoSettings(settings);
   m_renderManager.SetVideoSettings(settings);
   m_renderManager.SetDelay(static_cast<int>(settings.m_AudioDelay * 1000.0f));
   m_renderManager.SetSubtitleVerticalPosition(settings.m_subtitleVerticalPosition,
                                               settings.m_subtitleVerticalPositionSave);
-  m_VideoPlayerVideo->EnableSubtitle(settings.m_SubtitleOn);
+  if (subtitleOnChanged)
+    m_VideoPlayerVideo->EnableSubtitle(settings.m_SubtitleOn);
   m_VideoPlayerVideo->SetSubtitleDelay(static_cast<int>(-settings.m_SubtitleDelay * DVD_TIME_BASE));
 }
 
