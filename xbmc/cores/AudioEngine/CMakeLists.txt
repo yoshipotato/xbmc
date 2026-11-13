@@ -11,6 +11,7 @@ set(SOURCES AEResampleFactory.cpp
             Utils/AEBitstreamPacker.cpp
             Utils/AEChannelInfo.cpp
             Utils/AEDeviceInfo.cpp
+            Utils/AEEqualizer.cpp
             Utils/AELimiter.cpp
             Utils/AEPackIEC61937.cpp
             Utils/AEStreamInfo.cpp
@@ -40,6 +41,7 @@ set(HEADERS AEResampleFactory.h
             Utils/AEChannelData.h
             Utils/AEChannelInfo.h
             Utils/AEDeviceInfo.h
+            Utils/AEEqualizer.h
             Utils/AELimiter.h
             Utils/AEPackIEC61937.h
             Utils/AERingBuffer.h

@@ -32,6 +32,7 @@ public:
   ~CActiveAESettings() override;
 
   void OnSettingChanged(const std::shared_ptr<const CSetting>& setting) override;
+  void OnSettingAction(const std::shared_ptr<const CSetting>& setting) override;
 
   static void SettingOptionsAudioDevicesFiller(const std::shared_ptr<const CSetting>& setting,
                                                std::vector<StringSettingOption>& list,

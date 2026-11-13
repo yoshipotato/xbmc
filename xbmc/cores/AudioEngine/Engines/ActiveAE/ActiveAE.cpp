@@ -2276,6 +2276,12 @@ bool CActiveAE::RunStages()
             m_vizBuffers->Flush();
         }
 
+        // equalizer (PCM only, before gui sounds so those aren't coloured)
+        if (out->pkt->config.fmt == AV_SAMPLE_FMT_FLT || out->pkt->config.fmt == AV_SAMPLE_FMT_FLTP)
+          m_equalizer.Process(reinterpret_cast<float**>(out->pkt->data), out->pkt->planes,
+                              out->pkt->config.channels, out->pkt->nb_samples,
+                              out->pkt->config.sample_rate);
+
         // mix gui sounds
         MixSounds(*(out->pkt));
         if (!m_sinkHasVolume || m_muted)
@@ -2648,6 +2654,7 @@ void CActiveAE::LoadSettings()
 
   m_settings.stereoupmix = IsSettingVisible(CSettings::SETTING_AUDIOOUTPUT_STEREOUPMIX) ? settings->GetBool(CSettings::SETTING_AUDIOOUTPUT_STEREOUPMIX) : false;
   m_settings.normalizelevels = !settings->GetBool(CSettings::SETTING_AUDIOOUTPUT_MAINTAINORIGINALVOLUME);
+  LoadEqualizerSettings();
   m_settings.guisoundmode = settings->GetInt(CSettings::SETTING_AUDIOOUTPUT_GUISOUNDMODE);
 
   m_settings.passthrough = m_settings.config == AE_CONFIG_FIXED ? false : settings->GetBool(CSettings::SETTING_AUDIOOUTPUT_PASSTHROUGH);
@@ -2749,6 +2756,27 @@ void CActiveAE::EnumerateOutputDevices(AEDeviceList &devices, bool passthrough)
 void CActiveAE::OnSettingsChange()
 {
   m_controlPort.SendOutMessage(CActiveAEControlProtocol::RECONFIGURE);
+}
+
+void CActiveAE::OnEqualizerSettingsChange()
+{
+  // CAEEqualizer::SetParams is thread safe; the audio thread picks the change up on its next
+  // buffer and crossfades to it, so there's no need to reconfigure (and interrupt) the output.
+  LoadEqualizerSettings();
+}
+
+void CActiveAE::LoadEqualizerSettings()
+{
+  const std::shared_ptr<CSettings> settings =
+      CServiceBroker::GetSettingsComponent()->GetSettings();
+  CAEEqualizer::Params params;
+  params.enabled = settings->GetBool(CSettings::SETTING_AUDIOOUTPUT_EQ_ENABLED);
+  for (int i = 0; i < CAEEqualizer::BANDS; ++i)
+    params.gainsDb[i] = static_cast<float>(settings->GetInt(
+        std::string(CSettings::SETTING_AUDIOOUTPUT_EQ_BAND_PREFIX) + std::to_string(i + 1)));
+  params.preampDb = static_cast<float>(settings->GetInt(CSettings::SETTING_AUDIOOUTPUT_EQ_PREAMP));
+  params.preventClipping = settings->GetBool(CSettings::SETTING_AUDIOOUTPUT_EQ_PREVENTCLIPPING);
+  m_equalizer.SetParams(params);
 }
 
 bool CActiveAE::SupportsRaw(AEAudioFormat &format)

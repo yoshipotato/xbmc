@@ -15,6 +15,7 @@
 #include "guilib/LocalizeStrings.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
+#include "settings/lib/Setting.h"
 #include "settings/lib/SettingDefinitions.h"
 #include "settings/lib/SettingsManager.h"
 #include "utils/StringUtils.h"
@@ -54,6 +55,14 @@ CActiveAESettings::CActiveAESettings(CActiveAE &ae) : m_audioEngine(ae)
   settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_STREAMNOISE);
   settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_MAINTAINORIGINALVOLUME);
   settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_DTSHDCOREFALLBACK);
+  // equalizer: applied live, without reconfiguring the engine (see OnSettingChanged)
+  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_EQ_ENABLED);
+  for (int i = 1; i <= CAEEqualizer::BANDS; ++i)
+    settingSet.insert(std::string(CSettings::SETTING_AUDIOOUTPUT_EQ_BAND_PREFIX) +
+                      std::to_string(i));
+  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_EQ_PREAMP);
+  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_EQ_PREVENTCLIPPING);
+  settingSet.insert(CSettings::SETTING_AUDIOOUTPUT_EQ_RESET);
   settings->GetSettingsManager()->RegisterCallback(this, settingSet);
 
   settings->GetSettingsManager()->RegisterSettingOptionsFiller("aequalitylevels", SettingOptionsAudioQualityLevelsFiller);
@@ -78,7 +87,26 @@ CActiveAESettings::~CActiveAESettings()
 void CActiveAESettings::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
 {
   std::unique_lock<CCriticalSection> lock(m_cs);
+  if (setting && StringUtils::StartsWith(setting->GetId(), "audiooutput.eq."))
+  {
+    m_instance->m_audioEngine.OnEqualizerSettingsChange();
+    return;
+  }
   m_instance->m_audioEngine.OnSettingsChange();
+}
+
+void CActiveAESettings::OnSettingAction(const std::shared_ptr<const CSetting>& setting)
+{
+  if (!setting || setting->GetId() != CSettings::SETTING_AUDIOOUTPUT_EQ_RESET)
+    return;
+  // Each change calls OnSettingChanged, which updates the equalizer.
+  const std::shared_ptr<CSettings> settings =
+      CServiceBroker::GetSettingsComponent()->GetSettings();
+  for (int i = 1; i <= CAEEqualizer::BANDS; ++i)
+    settings->SetInt(std::string(CSettings::SETTING_AUDIOOUTPUT_EQ_BAND_PREFIX) +
+                         std::to_string(i),
+                     0);
+  settings->SetInt(CSettings::SETTING_AUDIOOUTPUT_EQ_PREAMP, 0);
 }
 
 void CActiveAESettings::SettingOptionsAudioDevicesFiller(const SettingConstPtr& setting,

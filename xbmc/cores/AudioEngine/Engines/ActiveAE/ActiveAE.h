@@ -12,6 +12,7 @@
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAEBuffer.h"
 #include "cores/AudioEngine/Interfaces/AESound.h"
 #include "cores/AudioEngine/Interfaces/AEStream.h"
+#include "cores/AudioEngine/Utils/AEEqualizer.h"
 #include "guilib/DispResource.h"
 #include "threads/SystemClock.h"
 #include "threads/Thread.h"
@@ -242,6 +243,7 @@ public:
   bool Resume() override;
   bool IsSuspended() override;
   void OnSettingsChange();
+  void OnEqualizerSettingsChange(); //!< thread safe, no reconfigure
 
   float GetVolume() override;
   void SetVolume(const float volume) override;
@@ -308,6 +310,7 @@ protected:
   void UnconfigureSink();
   void Dispose();
   void LoadSettings();
+  void LoadEqualizerSettings();
   void ValidateOutputDevices(bool saveChanges);
   bool NeedReconfigureBuffers();
   bool NeedReconfigureSink();
@@ -397,6 +400,7 @@ protected:
   float m_volumeScaled; // multiplier to scale samples in order to achieve the volume specified in m_volume
   bool m_muted;
   bool m_sinkHasVolume;
+  CAEEqualizer m_equalizer;
 
   // viz
   std::vector<IAudioCallback*> m_audioCallback;

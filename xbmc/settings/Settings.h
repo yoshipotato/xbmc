@@ -405,6 +405,11 @@ public:
   static constexpr auto SETTING_AUDIOOUTPUT_TRUEHDPASSTHROUGH = "audiooutput.truehdpassthrough";
   static constexpr auto SETTING_AUDIOOUTPUT_DTSHDPASSTHROUGH = "audiooutput.dtshdpassthrough";
   static constexpr auto SETTING_AUDIOOUTPUT_DTSHDCOREFALLBACK = "audiooutput.dtshdcorefallback";
+  static constexpr auto SETTING_AUDIOOUTPUT_EQ_ENABLED = "audiooutput.eq.enabled";
+  static constexpr auto SETTING_AUDIOOUTPUT_EQ_BAND_PREFIX = "audiooutput.eq.band"; // band1..band10
+  static constexpr auto SETTING_AUDIOOUTPUT_EQ_PREAMP = "audiooutput.eq.preamp";
+  static constexpr auto SETTING_AUDIOOUTPUT_EQ_PREVENTCLIPPING = "audiooutput.eq.preventclipping";
+  static constexpr auto SETTING_AUDIOOUTPUT_EQ_RESET = "audiooutput.eq.reset";
   static constexpr auto SETTING_AUDIOOUTPUT_VOLUMESTEPS = "audiooutput.volumesteps";
   static constexpr auto SETTING_INPUT_PERIPHERALS = "input.peripherals";
   static constexpr auto SETTING_INPUT_PERIPHERALLIBRARIES = "input.peripherallibraries";

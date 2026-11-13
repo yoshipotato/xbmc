@@ -23841,6 +23841,128 @@ msgctxt "#39201"
 msgid "HDR10+"
 msgstr ""
 
+#. Settings > System > Audio: group of the 10-band equalizer settings
+#: system/settings/settings.xml
+msgctxt "#39700"
+msgid "Equalizer"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39701"
+msgid "Enable equalizer"
+msgstr ""
+
+#. Help text for setting "Enable equalizer" of label #39701
+#: system/settings/settings.xml
+msgctxt "#39702"
+msgid "Shape the sound with a 10-band equalizer. Works on audio Kodi decodes itself (not passthrough), with any audio output including WASAPI exclusive mode. Changes are heard straight away, even during playback."
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39703"
+msgid "Prevent clipping"
+msgstr ""
+
+#. Help text for setting "Prevent clipping" of label #39703
+#: system/settings/settings.xml
+msgctxt "#39704"
+msgid "Lower the overall level by as much as the bands boost, so loud passages don't distort. Turn off to keep the volume and cut bands instead."
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39705"
+msgid "Preamp"
+msgstr ""
+
+#. Help text for setting "Preamp" of label #39705
+#: system/settings/settings.xml
+msgctxt "#39706"
+msgid "Extra gain for the whole signal, applied with the equalizer."
+msgstr ""
+
+#. Equalizer band
+#: system/settings/settings.xml
+msgctxt "#39707"
+msgid "31 Hz"
+msgstr ""
+
+#. Equalizer band
+#: system/settings/settings.xml
+msgctxt "#39708"
+msgid "62 Hz"
+msgstr ""
+
+#. Equalizer band
+#: system/settings/settings.xml
+msgctxt "#39709"
+msgid "125 Hz"
+msgstr ""
+
+#. Equalizer band
+#: system/settings/settings.xml
+msgctxt "#39710"
+msgid "250 Hz"
+msgstr ""
+
+#. Equalizer band
+#: system/settings/settings.xml
+msgctxt "#39711"
+msgid "500 Hz"
+msgstr ""
+
+#. Equalizer band
+#: system/settings/settings.xml
+msgctxt "#39712"
+msgid "1 kHz"
+msgstr ""
+
+#. Equalizer band
+#: system/settings/settings.xml
+msgctxt "#39713"
+msgid "2 kHz"
+msgstr ""
+
+#. Equalizer band
+#: system/settings/settings.xml
+msgctxt "#39714"
+msgid "4 kHz"
+msgstr ""
+
+#. Equalizer band
+#: system/settings/settings.xml
+msgctxt "#39715"
+msgid "8 kHz"
+msgstr ""
+
+#. Equalizer band
+#: system/settings/settings.xml
+msgctxt "#39716"
+msgid "16 kHz"
+msgstr ""
+
+#. Help text for the equalizer band settings
+#: system/settings/settings.xml
+msgctxt "#39717"
+msgid "Boost or cut this frequency band, from -12 to +12 dB."
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39718"
+msgid "Reset all bands to 0 dB"
+msgstr ""
+
+#. Help text for setting "Reset all bands to 0 dB" of label #39718
+#: system/settings/settings.xml
+msgctxt "#39719"
+msgid "Set every band and the preamp back to 0 dB."
+msgstr ""
+
+#. Value of an equalizer band or the preamp, e.g. "+3 dB"
+#: system/settings/settings.xml
+msgctxt "#39720"
+msgid "{0:+d} dB"
+msgstr ""
+
 # 40000 to 40800 are reserved for Video Versions feature
 
 #. Generic video versions label (plural)
