@@ -9,6 +9,7 @@ set(SOURCES AppEnvironment.cpp
             ApplicationSkinHandling.cpp
             ApplicationStackHelper.cpp
             ApplicationVolumeHandling.cpp
+            EqualizerManager.cpp
             AppParamParser.cpp
             AppParams.cpp)
 
@@ -23,6 +24,7 @@ set(HEADERS AppEnvironment.h
             ApplicationSkinHandling.h
             ApplicationStackHelper.h
             ApplicationVolumeHandling.h
+            EqualizerManager.h
             AppParamParser.h
             AppParams.h)
 

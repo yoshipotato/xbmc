@@ -28,9 +28,17 @@ public:
   static constexpr float MAX_GAIN_DB = 12.0f;
   static const std::array<float, BANDS> FREQUENCIES;
 
+  /*!
+   * \brief Whether the equalizer runs right now (thread safe).
+   * Decided per item by CEqualizerManager (remembered per season / folder, or the defaults);
+   * the band levels come from the settings (Params).
+   */
+  static void SetActive(bool active);
+  static bool IsActive();
+
   struct Params
   {
-    bool enabled = false;
+    bool enabled = true; //!< false = never run, whatever SetActive says
     std::array<float, BANDS> gainsDb{}; //!< per band, -12..+12 dB
     float preampDb = 0.0f; //!< extra gain for the whole signal
     bool preventClipping = true; //!< lower the level by the largest boost
@@ -84,8 +92,11 @@ private:
   Params m_params; // guarded by m_lock
   std::atomic<unsigned int> m_version{1};
 
+  static std::atomic<bool> s_active;
+
   // audio thread only
   unsigned int m_appliedVersion = 0;
+  bool m_appliedActive = false;
   int m_sampleRate = 0;
   int m_channels = 0;
   bool m_active = false;

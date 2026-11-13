@@ -19,6 +19,18 @@ constexpr double BAND_Q = 1.41421356237; // one octave
 constexpr double TINY = 1e-18; // flush denormals in the filter state
 } // namespace
 
+std::atomic<bool> CAEEqualizer::s_active{false};
+
+void CAEEqualizer::SetActive(bool active)
+{
+  s_active = active;
+}
+
+bool CAEEqualizer::IsActive()
+{
+  return s_active;
+}
+
 const std::array<float, CAEEqualizer::BANDS> CAEEqualizer::FREQUENCIES = {
     31.25f, 62.5f, 125.0f, 250.0f, 500.0f, 1000.0f, 2000.0f, 4000.0f, 8000.0f, 16000.0f};
 
@@ -155,15 +167,18 @@ void CAEEqualizer::Process(float** data, int planes, int channels, int frames, i
     return;
 
   const unsigned int version = m_version.load();
+  const bool active = s_active.load();
   const bool formatChanged = sampleRate != m_sampleRate || channels != m_channels;
-  if (version == m_appliedVersion && !formatChanged)
+  if (version == m_appliedVersion && active == m_appliedActive && !formatChanged)
   {
     if (!m_active)
       return;
   }
   else
   {
-    const Chain newChain = Design(GetParams(), sampleRate);
+    Params params = GetParams();
+    params.enabled = params.enabled && active;
+    const Chain newChain = Design(params, sampleRate);
     const bool newActive = !newChain.IsFlat();
     std::vector<double> newState(newChain.filters.size() * channels * 2, 0.0);
 
@@ -198,6 +213,7 @@ void CAEEqualizer::Process(float** data, int planes, int channels, int frames, i
     m_state.swap(newState);
     m_active = newActive;
     m_appliedVersion = version;
+    m_appliedActive = active;
     m_sampleRate = sampleRate;
     m_channels = channels;
     if (crossfade || !m_active)

@@ -14,6 +14,8 @@
 #include "application/ApplicationComponents.h"
 #include "application/ApplicationPlayer.h"
 #include "application/ApplicationVolumeHandling.h"
+#include "application/EqualizerManager.h"
+#include "cores/AudioEngine/Utils/AEEqualizer.h"
 #include "cores/AudioEngine/Utils/AEUtil.h"
 #include "cores/IPlayer.h"
 #include "dialogs/GUIDialogYesNo.h"
@@ -33,6 +35,7 @@
 #include "utils/log.h"
 #include "video/VideoDatabase.h"
 
+#include <cstring>
 #include <memory>
 #include <string>
 #include <vector>
@@ -44,6 +47,10 @@
 #define SETTING_AUDIO_STREAM                   "audio.stream"
 #define SETTING_AUDIO_PASSTHROUGH              "audio.digitalanalog"
 #define SETTING_AUDIO_MAKE_DEFAULT             "audio.makedefault"
+#define SETTING_AUDIO_EQUALIZER                "audio.equalizer"
+#define SETTING_AUDIO_EQ_BAND_PREFIX           "audio.eqband"
+#define SETTING_AUDIO_EQ_PREAMP                "audio.eqpreamp"
+#define SETTING_AUDIO_EQ_RESET                 "audio.eqreset"
 
 CGUIDialogAudioSettings::CGUIDialogAudioSettings()
   : CGUIDialogSettingsManualBase(WINDOW_DIALOG_AUDIO_OSD_SETTINGS, "DialogSettings.xml")
@@ -142,6 +149,26 @@ void CGUIDialogAudioSettings::OnSettingChanged(const std::shared_ptr<const CSett
     m_passthrough = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
     CServiceBroker::GetSettingsComponent()->GetSettings()->SetBool(CSettings::SETTING_AUDIOOUTPUT_PASSTHROUGH, m_passthrough);
   }
+  else if (settingId == SETTING_AUDIO_EQUALIZER)
+  {
+    // remembered for this season / folder (or for music)
+    CEqualizerManager::GetInstance().SetActiveForCurrent(
+        std::static_pointer_cast<const CSettingBool>(setting)->GetValue());
+  }
+  else if (StringUtils::StartsWith(settingId, SETTING_AUDIO_EQ_BAND_PREFIX))
+  {
+    // the levels are shared by everything: change the global setting (applied live)
+    const std::string band = settingId.substr(strlen(SETTING_AUDIO_EQ_BAND_PREFIX));
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(
+        std::string(CSettings::SETTING_AUDIOOUTPUT_EQ_BAND_PREFIX) + band,
+        std::static_pointer_cast<const CSettingInt>(setting)->GetValue());
+  }
+  else if (settingId == SETTING_AUDIO_EQ_PREAMP)
+  {
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(
+        CSettings::SETTING_AUDIOOUTPUT_EQ_PREAMP,
+        std::static_pointer_cast<const CSettingInt>(setting)->GetValue());
+  }
 }
 
 void CGUIDialogAudioSettings::OnSettingAction(const std::shared_ptr<const CSetting>& setting)
@@ -154,6 +181,13 @@ void CGUIDialogAudioSettings::OnSettingAction(const std::shared_ptr<const CSetti
   const std::string &settingId = setting->GetId();
   if (settingId == SETTING_AUDIO_MAKE_DEFAULT)
     Save();
+  else if (settingId == SETTING_AUDIO_EQ_RESET)
+  {
+    // each change goes through OnSettingChanged to the global settings
+    for (int i = 1; i <= CAEEqualizer::BANDS; ++i)
+      GetSettingsManager()->SetInt(SETTING_AUDIO_EQ_BAND_PREFIX + std::to_string(i), 0);
+    GetSettingsManager()->SetInt(SETTING_AUDIO_EQ_PREAMP, 0);
+  }
 }
 
 bool CGUIDialogAudioSettings::Save()
@@ -209,6 +243,12 @@ void CGUIDialogAudioSettings::InitializeSettings()
   // get all necessary setting groups
   const std::shared_ptr<CSettingGroup> groupAudio = AddGroup(category);
   if (groupAudio == NULL)
+  {
+    CLog::Log(LOGERROR, "CGUIDialogAudioSettings: unable to setup settings");
+    return;
+  }
+  const std::shared_ptr<CSettingGroup> groupEqualizer = AddGroup(category, 39700);
+  if (groupEqualizer == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogAudioSettings: unable to setup settings");
     return;
@@ -297,6 +337,41 @@ void CGUIDialogAudioSettings::InitializeSettings()
   {
     m_passthrough = CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_AUDIOOUTPUT_PASSTHROUGH);
     AddToggle(groupAudio, SETTING_AUDIO_PASSTHROUGH, 348, SettingLevel::Basic, m_passthrough);
+  }
+
+  // equalizer: on/off (remembered per season / folder, or for music) and the shared levels
+  {
+    const std::shared_ptr<CSettings> settings = CServiceBroker::GetSettingsComponent()->GetSettings();
+    std::shared_ptr<CSettingBool> settingEqualizer =
+        AddToggle(groupEqualizer, SETTING_AUDIO_EQUALIZER, 39700, SettingLevel::Basic,
+                  CEqualizerManager::GetInstance().IsActive());
+    settingEqualizer->SetDependencies(depsAudioOutputPassthroughDisabled);
+
+    CSettingDependency dependencyEqualizerOn(SettingDependencyType::Enable, GetSettingsManager());
+    dependencyEqualizerOn.And()->Add(std::make_shared<CSettingDependencyCondition>(
+        SETTING_AUDIO_EQUALIZER, "true", SettingDependencyOperator::Equals, false,
+        GetSettingsManager()));
+    SettingDependencies depsEqualizerOn;
+    depsEqualizerOn.push_back(dependencyEqualizerOn);
+
+    const int maxGain = static_cast<int>(CAEEqualizer::MAX_GAIN_DB);
+    for (int i = 1; i <= CAEEqualizer::BANDS; ++i)
+    {
+      const int value =
+          settings->GetInt(std::string(CSettings::SETTING_AUDIOOUTPUT_EQ_BAND_PREFIX) + std::to_string(i));
+      std::shared_ptr<CSettingInt> band =
+          AddSlider(groupEqualizer, SETTING_AUDIO_EQ_BAND_PREFIX + std::to_string(i), 39706 + i,
+                    SettingLevel::Basic, value, 39720, -maxGain, 1, maxGain);
+      band->SetDependencies(depsEqualizerOn);
+    }
+    std::shared_ptr<CSettingInt> preamp =
+        AddSlider(groupEqualizer, SETTING_AUDIO_EQ_PREAMP, 39705, SettingLevel::Basic,
+                  settings->GetInt(CSettings::SETTING_AUDIOOUTPUT_EQ_PREAMP), 39720, -maxGain, 1,
+                  maxGain);
+    preamp->SetDependencies(depsEqualizerOn);
+    std::shared_ptr<CSettingAction> reset =
+        AddButton(groupEqualizer, SETTING_AUDIO_EQ_RESET, 39718, SettingLevel::Basic);
+    reset->SetDependencies(depsEqualizerOn);
   }
 
   // subtitle stream setting

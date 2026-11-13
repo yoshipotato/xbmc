@@ -3390,12 +3390,14 @@
           <default>false</default>
           <control type="toggle" />
         </setting>
+        <setting id="audiooutput.eq.music" type="boolean" label="39721" help="39722">
+          <level>0</level>
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
         <setting id="audiooutput.eq.band1" type="integer" label="39707" help="39717">
           <level>0</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3409,9 +3411,6 @@
         <setting id="audiooutput.eq.band2" type="integer" label="39708" help="39717">
           <level>0</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3425,9 +3424,6 @@
         <setting id="audiooutput.eq.band3" type="integer" label="39709" help="39717">
           <level>0</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3441,9 +3437,6 @@
         <setting id="audiooutput.eq.band4" type="integer" label="39710" help="39717">
           <level>0</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3457,9 +3450,6 @@
         <setting id="audiooutput.eq.band5" type="integer" label="39711" help="39717">
           <level>0</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3473,9 +3463,6 @@
         <setting id="audiooutput.eq.band6" type="integer" label="39712" help="39717">
           <level>0</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3489,9 +3476,6 @@
         <setting id="audiooutput.eq.band7" type="integer" label="39713" help="39717">
           <level>0</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3505,9 +3489,6 @@
         <setting id="audiooutput.eq.band8" type="integer" label="39714" help="39717">
           <level>0</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3521,9 +3502,6 @@
         <setting id="audiooutput.eq.band9" type="integer" label="39715" help="39717">
           <level>0</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3537,9 +3515,6 @@
         <setting id="audiooutput.eq.band10" type="integer" label="39716" help="39717">
           <level>0</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3553,9 +3528,6 @@
         <setting id="audiooutput.eq.preamp" type="integer" label="39705" help="39706">
           <level>1</level>
           <default>0</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <constraints>
             <minimum>-12</minimum>
             <step>1</step>
@@ -3569,16 +3541,10 @@
         <setting id="audiooutput.eq.preventclipping" type="boolean" label="39703" help="39704">
           <level>1</level>
           <default>true</default>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <control type="toggle" />
         </setting>
         <setting id="audiooutput.eq.reset" type="action" label="39718" help="39719">
           <level>0</level>
-          <dependencies>
-            <dependency type="enable" setting="audiooutput.eq.enabled">true</dependency>
-          </dependencies>
           <control type="button" format="action" />
         </setting>
       </group>

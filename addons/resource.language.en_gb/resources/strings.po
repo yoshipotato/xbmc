@@ -23849,13 +23849,13 @@ msgstr ""
 
 #: system/settings/settings.xml
 msgctxt "#39701"
-msgid "Enable equalizer"
+msgid "Use equalizer for videos by default"
 msgstr ""
 
 #. Help text for setting "Enable equalizer" of label #39701
 #: system/settings/settings.xml
 msgctxt "#39702"
-msgid "Shape the sound with a 10-band equalizer. Works on audio Kodi decodes itself (not passthrough), with any audio output including WASAPI exclusive mode. Changes are heard straight away, even during playback."
+msgid "Whether videos start with the equalizer on. Switching it on or off in the audio settings while a video plays is remembered for that TV show season (and the folder the file is in), which then takes priority over this. Works on audio Kodi decodes itself (not passthrough), with any audio output including WASAPI exclusive mode."
 msgstr ""
 
 #: system/settings/settings.xml
@@ -23961,6 +23961,42 @@ msgstr ""
 #: system/settings/settings.xml
 msgctxt "#39720"
 msgid "{0:+d} dB"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39721"
+msgid "Use equalizer for music"
+msgstr ""
+
+#. Help text for setting "Use equalizer for music" of label #39721
+#: system/settings/settings.xml
+msgctxt "#39722"
+msgid "Run the equalizer for music. Can also be switched in the audio settings while music plays."
+msgstr ""
+
+#. Equalizer: a TV show season, e.g. "Star Trek: Lower Decks season 2"
+msgctxt "#39724"
+msgid "{0:s} season {1:d}"
+msgstr ""
+
+#. Notification after switching the equalizer on in the playback audio settings, e.g. "On for Star Trek: Lower Decks season 2"
+msgctxt "#39725"
+msgid "On for {0:s}"
+msgstr ""
+
+#. Notification after switching the equalizer off in the playback audio settings
+msgctxt "#39726"
+msgid "Off for {0:s}"
+msgstr ""
+
+#. Equalizer scope name used in "On for music"
+msgctxt "#39727"
+msgid "music"
+msgstr ""
+
+#. Equalizer scope name for a video with no season or folder, used in "On for this video"
+msgctxt "#39728"
+msgid "this video"
 msgstr ""
 
 # 40000 to 40800 are reserved for Video Versions feature

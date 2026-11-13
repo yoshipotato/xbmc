@@ -405,7 +405,8 @@ public:
   static constexpr auto SETTING_AUDIOOUTPUT_TRUEHDPASSTHROUGH = "audiooutput.truehdpassthrough";
   static constexpr auto SETTING_AUDIOOUTPUT_DTSHDPASSTHROUGH = "audiooutput.dtshdpassthrough";
   static constexpr auto SETTING_AUDIOOUTPUT_DTSHDCOREFALLBACK = "audiooutput.dtshdcorefallback";
-  static constexpr auto SETTING_AUDIOOUTPUT_EQ_ENABLED = "audiooutput.eq.enabled";
+  static constexpr auto SETTING_AUDIOOUTPUT_EQ_ENABLED = "audiooutput.eq.enabled"; // videos default
+  static constexpr auto SETTING_AUDIOOUTPUT_EQ_MUSIC = "audiooutput.eq.music";
   static constexpr auto SETTING_AUDIOOUTPUT_EQ_BAND_PREFIX = "audiooutput.eq.band"; // band1..band10
   static constexpr auto SETTING_AUDIOOUTPUT_EQ_PREAMP = "audiooutput.eq.preamp";
   static constexpr auto SETTING_AUDIOOUTPUT_EQ_PREVENTCLIPPING = "audiooutput.eq.preventclipping";

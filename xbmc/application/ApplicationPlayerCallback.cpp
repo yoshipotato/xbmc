@@ -16,6 +16,7 @@
 #include "application/ApplicationComponents.h"
 #include "application/ApplicationPlayer.h"
 #include "application/ApplicationStackHelper.h"
+#include "application/EqualizerManager.h"
 #include "cores/VideoPlayer/Interface/StreamInfo.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIMessage.h"
@@ -87,6 +88,9 @@ void CApplicationPlayerCallback::OnPlayBackStarted(const CFileItem& file)
   }
 
   stackHelper->OnPlayBackStarted(file);
+
+  // equalizer on/off for this item (remembered per season / folder, or the defaults)
+  CEqualizerManager::GetInstance().OnPlaybackStarted(file);
 
   CGUIMessage msg(GUI_MSG_PLAYBACK_STARTED, 0, 0, 0, 0, itemCurrentFile);
   CServiceBroker::GetGUI()->GetWindowManager().SendThreadMessage(msg);

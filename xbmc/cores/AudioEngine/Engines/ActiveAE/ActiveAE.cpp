@@ -2770,7 +2770,9 @@ void CActiveAE::LoadEqualizerSettings()
   const std::shared_ptr<CSettings> settings =
       CServiceBroker::GetSettingsComponent()->GetSettings();
   CAEEqualizer::Params params;
-  params.enabled = settings->GetBool(CSettings::SETTING_AUDIOOUTPUT_EQ_ENABLED);
+  // On/off is decided per item by CEqualizerManager (CAEEqualizer::SetActive); the
+  // "audiooutput.eq.enabled" setting is only the default for videos.
+  params.enabled = true;
   for (int i = 0; i < CAEEqualizer::BANDS; ++i)
     params.gainsDb[i] = static_cast<float>(settings->GetInt(
         std::string(CSettings::SETTING_AUDIOOUTPUT_EQ_BAND_PREFIX) + std::to_string(i + 1)));
